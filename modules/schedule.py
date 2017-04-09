@@ -43,15 +43,25 @@ def search(bot, message):
 	bot.user_set(message.u_id, "schedule", schedule)
 	bot.user_set(message.u_id, "schedule:page", 0)
 	
+	if len(schedule) > 5: 
+		keyboard = bot.get_inline_keyboard([["Далее", "schedule/show-shedule"]])
+	else:
+		keyboard = None
+		
 	SCHEDULE = bot.render_message("shedule", schedule[0:5])
-	bot.telegram.send_message(message.u_id, SCHEDULE, parse_mode = "Markdown")
+	bot.telegram.send_message(message.u_id, SCHEDULE, parse_mode = "Markdown", reply_markup = keyboard)
 
 def show_shedule(bot, query):
 	page = bot.user_get(message.u_id, "schedule:page")+1
 	bot.user_set(message.u_id, "schedule:page", page)
 	
+	if page*5+5 >= len(schedule):
+		keyboard = bot.get_inline_keyboard([["Далее", "schedule/show-shedule"]])
+	else:
+		keyboard = None
+
 	SCHEDULE = bot.render_message("shedule", schedule[page*5:page*5+5])
-	bot.telegram.send_message(message.u_id, SCHEDULE, parse_mode = "Markdown")
+	bot.telegram.send_message(message.u_id, SCHEDULE, parse_mode = "Markdown", reply_markup = keyboard)
 
 def get_station_name(bot, message):
 	SELECT_STANTION = bot.render_message("station-not-found")
