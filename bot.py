@@ -154,7 +154,7 @@ class Bot:
             markup = telebot.types.ReplyKeyboardRemove()
         else:
             if type(keyboard) is str: keyboard =  self.const["keyboards"][keyboard]
-            markup = telebot.types.ReplyKeyboardMarkup(row_width=3)
+            markup = telebot.types.ReplyKeyboardMarkup(row_width=3, resize_keyboard = True)
             for row in keyboard:
                 keyboard_row = []
                 for col in row: keyboard_row.append(telebot.types.KeyboardButton(col[0]))

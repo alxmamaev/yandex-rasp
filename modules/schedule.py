@@ -113,7 +113,9 @@ def search(bot, message):
 		bot.telegram.send_message(message.u_id, SCHEDULE, parse_mode = "Markdown", reply_markup = keyboard)
 	else:
 		bot.telegram.send_message(message.u_id, SCHEDULE_IS_EMPTY, reply_markup = BACK_TO_MENU_KEYBOARD)
+		self.call_handler(self.const["default-handler"], message)
 
+		
 def show_shedule(bot, query):
 	page = bot.user_get(message.u_id, "schedule:page")+1
 	bot.user_set(message.u_id, "schedule:page", page)
