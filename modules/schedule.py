@@ -1,3 +1,5 @@
+import requests
+
 def init(bot):
 	bot.handlers["schedule/start"] = start
 	bot.handlers["schedule/get-station-name"] = get_station_name

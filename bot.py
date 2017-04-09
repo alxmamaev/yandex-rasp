@@ -9,6 +9,7 @@ import sqlite3
 import redis
 import telebot
 import jinja2
+import requests
 
 
 logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level = logging.INFO)
@@ -27,6 +28,7 @@ class Bot:
         self.const.update(json.loads(codecs.open("config/init.json", "r", "utf-8").read()))
         self.const["messages"] = json.loads(codecs.open("config/messages.json", "r", "utf-8").read())
         self.const["keyboards"] = json.loads(codecs.open("config/keyboards.json", "r", "utf-8").read())
+        self.API_KEY = os.environ["API_KEY"]
 
         self.logger.info("Connect to Telegram")
         self.telegram = telebot.TeleBot(os.environ["BOT_TOKEN"])
