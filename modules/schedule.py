@@ -1,67 +1,15 @@
 def init(bot):
-	pass
+	bot.handlers["schedule/start"] = start
+	bot.handlers["schedule/get-station-name"] = get_station_name
+	bot.handlers["schedule/select-station"] = select_stantion
+	bot.handlers["schedule/search"] = search
+	bot.callback_handlers["show_shedule"] = 
 
 def start(bot, message):
 	GET_FIRST_STATION = bot.render_message("get-first-station")
 	bot.telegram.send_message(message.u_id, GET_FIRST_STATION)
 
-	bot.set_next_handler("get-station-name")
-
-def search(bot, message):
-	from_stantion = bot.user_get(message.u_id, "stantion:1")
-	to_stantion = bot.user_get(message.u_id, "stantion:2")
-
-	schedule = []
-	page = 1
-	next_page = True
-	while next_page:
-	    print(page)
-	    url = "https://api.rasp.yandex.net/v1.0/search/?apikey=%s&format=json&system=express&from=%s&to=%s&lang=ru&transport_types=suburban&page=%s"%(bot.API_KEY, from_stantion, to_stantion, page)
-	    res = requests.get(url).json()
-	    
-	    next_page = res["pagination"]["has_next"]
-	    
-	    
-	    for i in res["threads"]:
-	        a = {
-	            "number": i["thread"]["number"],
-	            "uid": i["thread"]["uid"],
-	            "title": i["thread"]["title"],
-	            
-	            "arrival": i["arrival"],
-	            "departure": i["departure"],
-	            
-	            "days": i["days"],
-	            "excepted_days": i["except_days"],
-	            
-	            
-	            
-	        }
-	        schedule.append(a)
-	    page += 1
-
-	bot.user_set(message.u_id, "schedule", schedule)
-	bot.user_set(message.u_id, "schedule:page", 0)
-	
-	if len(schedule) > 5: 
-		keyboard = bot.get_inline_keyboard([["Далее", "schedule/show-shedule"]])
-	else:
-		keyboard = None
-		
-	SCHEDULE = bot.render_message("shedule", schedule[0:5])
-	bot.telegram.send_message(message.u_id, SCHEDULE, parse_mode = "Markdown", reply_markup = keyboard)
-
-def show_shedule(bot, query):
-	page = bot.user_get(message.u_id, "schedule:page")+1
-	bot.user_set(message.u_id, "schedule:page", page)
-	
-	if page*5+5 >= len(schedule):
-		keyboard = bot.get_inline_keyboard([["Далее", "schedule/show-shedule"]])
-	else:
-		keyboard = None
-
-	SCHEDULE = bot.render_message("shedule", schedule[page*5:page*5+5])
-	bot.telegram.send_message(message.u_id, SCHEDULE, parse_mode = "Markdown", reply_markup = keyboard)
+	bot.set_next_handler("schedule/get-station-name")
 
 def get_station_name(bot, message):
 	SELECT_STANTION = bot.render_message("station-not-found")
@@ -104,3 +52,59 @@ def select_stantion(bot, message):
 		bot.user_set(message.u_id, "stantion:2", stantion)
 		results = []
 
+def search(bot, message):
+	from_stantion = bot.user_get(message.u_id, "stantion:1")
+	to_stantion = bot.user_get(message.u_id, "stantion:2")
+
+	schedule = []
+	page = 1
+	next_page = True
+	while next_page:
+	    print(page)
+	    url = "https://api.rasp.yandex.net/v1.0/search/?apikey=%s&format=json&system=express&from=%s&to=%s&lang=ru&transport_types=suburban&page=%s"%(bot.API_KEY, from_stantion, to_stantion, page)
+	    res = requests.get(url).json()
+	    
+	    next_page = res["pagination"]["has_next"]
+	    
+	    
+	    for i in res["threads"]:
+	        a = {
+	            "number": i["thread"]["number"],
+	            "uid": i["thread"]["uid"],
+	            "title": i["thread"]["title"],
+	            
+	            "arrival": i["arrival"],
+	            "departure": i["departure"],
+	            
+	            "days": i["days"],
+	            "excepted_days": i["except_days"],
+	            
+	            
+	            
+	        }
+	        schedule.append(a)
+	    page += 1
+
+	bot.user_set(message.u_id, "schedule", schedule)
+	bot.user_set(message.u_id, "schedule:page", 0)
+	
+	if len(schedule) > 5: 
+		keyboard = bot.get_inline_keyboard([["Далее", "schedule/show-shedule"]])
+	else:
+		keyboard = None
+
+	SCHEDULE = bot.render_message("shedule", schedule[0:5])
+	bot.telegram.send_message(message.u_id, SCHEDULE, parse_mode = "Markdown", reply_markup = keyboard)
+
+
+def show_shedule(bot, query):
+	page = bot.user_get(message.u_id, "schedule:page")+1
+	bot.user_set(message.u_id, "schedule:page", page)
+	
+	if page*5+5 >= len(schedule):
+		keyboard = bot.get_inline_keyboard([["Далее", "schedule/show-shedule"]])
+	else:
+		keyboard = None
+
+	SCHEDULE = bot.render_message("shedule", schedule[page*5:page*5+5])
+	bot.telegram.send_message(message.u_id, SCHEDULE, parse_mode = "Markdown", reply_markup = keyboard)
