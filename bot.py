@@ -170,7 +170,7 @@ class Bot:
         markup = telebot.types.InlineKeyboardMarkup(row_width=3)
         for row in keyboard:
             keyboard_row = []
-            for col in row: keyboard_row.append(telebot.types.InlineKeyboardButton(col[0]))
+            for col in row: keyboard_row.append(telebot.types.InlineKeyboardButton(col[0], callback_data = col[1]))
             markup.row(*keyboard_row)
 
         return markup
