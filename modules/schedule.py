@@ -11,6 +11,9 @@ def start(bot, message):
 	GET_FIRST_STATION = bot.render_message("get-first-station")
 	bot.telegram.send_message(message.u_id, GET_FIRST_STATION)
 
+	bot.user_delete(message.u_id, "station:1")
+	bot.user_delete(message.u_id, "station:2")
+
 	bot.set_next_handler(message.u_id, "schedule/get-station-name")
 
 def get_station_name(bot, message):
@@ -58,6 +61,8 @@ def select_station(bot, message):
 
 
 def search(bot, message):
+	SCHEDULE_IS_EMPTY = bot.render_message("schedule-is-empty")
+
 	from_station = bot.user_get(message.u_id, "station:1")
 	to_station = bot.user_get(message.u_id, "station:2")
 
@@ -98,9 +103,11 @@ def search(bot, message):
 	else:
 		keyboard = None
 
-	SCHEDULE = bot.render_message("shedule", schedule[0:5])
-	bot.telegram.send_message(message.u_id, SCHEDULE, parse_mode = "Markdown", reply_markup = keyboard)
-
+	if schedule:
+		SCHEDULE = bot.render_message("schedule", schedule = schedule[0:5])
+		bot.telegram.send_message(message.u_id, SCHEDULE, parse_mode = "Markdown", reply_markup = keyboard)
+	else:
+		bot.telegram.send_message(message.u_id, SCHEDULE_IS_EMPTY)
 
 def show_shedule(bot, query):
 	page = bot.user_get(message.u_id, "schedule:page")+1
@@ -111,5 +118,5 @@ def show_shedule(bot, query):
 	else:
 		keyboard = None
 
-	SCHEDULE = bot.render_message("shedule", schedule[page*5:page*5+5])
+	SCHEDULE = bot.render_message("schedule", schedule = schedule[page*5:page*5+5])
 	bot.telegram.send_message(message.u_id, SCHEDULE, parse_mode = "Markdown", reply_markup = keyboard)

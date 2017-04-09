@@ -9,7 +9,6 @@ import sqlite3
 import redis
 import telebot
 import jinja2
-import requests
 
 
 logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level = logging.INFO)
@@ -84,10 +83,7 @@ class Bot:
 
     def user_delete(self, user_id, field):
         key = "%s:%s" % (user_id, field)
-        value = self.users_space.delete(key)
-
-        if value is not None: value = json.loads(value[0][1])
-        else: value = None
+        value = self.redis.delete(key)
 
         self.logger.info("user:%s delete[%s]: %s" % (user_id, field, value))
         
