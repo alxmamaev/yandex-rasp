@@ -30,5 +30,5 @@ def set_webhook():
     bot.telegram.set_webhook(url=WEBHOOK_URL)
     return "Webhook setted", 200
     
-bot = Bot(debug=True)
+bot = Bot()
 if __name__=="__main__": app.run(port=8089)

@@ -5,7 +5,7 @@ def init(bot):
 	bot.handlers["schedule/get-station-name"] = get_station_name
 	bot.handlers["schedule/select-station"] = select_station
 	bot.handlers["schedule/search"] = search
-	bot.callback_handlers["schedule/show_shedule"] = show_shedule
+	bot.callback_handlers["schedule-show-shedule"] = show_shedule
 
 def start(bot, message):
 	GET_FIRST_STATION = bot.render_message("get-first-station")
@@ -102,8 +102,8 @@ def search(bot, message):
 	bot.user_set(message.u_id, "schedule", schedule)
 	bot.user_set(message.u_id, "schedule:page", 0)
 	
-	if len(schedule) > 5: 
-		keyboard = bot.get_inline_keyboard([["Далее", "schedule/show-shedule"]])
+	if len(schedule) > 6: 
+		keyboard = bot.get_inline_keyboard([[["Далее", "schedule-show-shedule"]]])
 	else:
 		keyboard = None
 
@@ -115,15 +115,21 @@ def search(bot, message):
 		bot.telegram.send_message(message.u_id, SCHEDULE_IS_EMPTY, reply_markup = BACK_TO_MENU_KEYBOARD)
 		self.call_handler(self.const["default-handler"], message)
 
-		
+
 def show_shedule(bot, query):
-	page = bot.user_get(message.u_id, "schedule:page")+1
-	bot.user_set(message.u_id, "schedule:page", page)
-	
-	if page*5+5 >= len(schedule):
-		keyboard = bot.get_inline_keyboard([["Далее", "schedule/show-shedule"]])
+	page = bot.user_get(query.u_id, "schedule:page")
+	schedule = bot.user_get(query.u_id, "schedule")
+
+	SCHEDULE = bot.render_message("schedule", schedule = schedule[0:5])
+	bot.telegram.edit_message_text(chat_id = query.u_id, message_id = query.message.message_id, text = SCHEDULE, parse_mode = "Markdown")
+
+	page+=1
+	bot.user_set(query.u_id, "schedule:page", page)
+
+	if page*5+5 <= len(schedule):
+		keyboard = bot.get_inline_keyboard([[["Далее", "schedule-show-shedule"]]])
 	else:
 		keyboard = None
 
 	SCHEDULE = bot.render_message("schedule", schedule = schedule[page*5:page*5+5])
-	bot.telegram.send_message(message.u_id, SCHEDULE, parse_mode = "Markdown", reply_markup = keyboard)
+	bot.telegram.send_message(query.u_id, SCHEDULE, parse_mode = "Markdown", reply_markup = keyboard)
