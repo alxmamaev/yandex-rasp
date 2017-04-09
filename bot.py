@@ -97,7 +97,7 @@ class Bot:
     def call_handler(self, handler, message, forward_flag=True):
         self.logger.info("user:%s call_handler[%s]" % (message.u_id, handler))
         
-        if forward_flag: message.is_forward = True
+        if forward_flag: message.forward = True
         self.handlers[handler](self, message)
 
     
@@ -112,9 +112,8 @@ class Bot:
             if type(update) is telebot.types.CallbackQuery: self._process_message(update)
 
     def _process_message(self, message):
-        print(message)
         message.u_id = message.chat.id
-        message.is_forward = False
+        message.forward = False
         if message.text == self.const["menu-button"]: 
             self.set_next_handler(message.u_id, self.const["default-handler"])
         
@@ -122,12 +121,12 @@ class Bot:
         self.set_next_handler(message.u_id, self.const["default-handler"])
 
         try:
-            self.call_handler(current_handler, message)
+            self.call_handler(current_handler, message, forward_flag = False)
         except Exception as ex:
             self.logger.error(ex)
             if self.debug: raise ex
             self.set_next_handler(message.u_id, self.const["default-handler"])
-            self.call_handler(self.const["default-handler"], message)
+            self.call_handler(self.const["default-handler"], message, forward_flag = False)
 
     def _process_callback(self, query):
         query.u_id = query.message.chat.id
@@ -154,7 +153,7 @@ class Bot:
 
     def get_keyboard(self, keyboard):
         if keyboard is None: 
-            markup = telebot.types.ReplyKeyboardRemove(resize_keyboard=False)
+            markup = telebot.types.ReplyKeyboardRemove()
         else:
             if type(keyboard) is str: keyboard =  self.const["keyboards"][keyboard]
             markup = telebot.types.ReplyKeyboardMarkup(row_width=3)

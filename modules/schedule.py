@@ -1,67 +1,70 @@
 def init(bot):
 	bot.handlers["schedule/start"] = start
 	bot.handlers["schedule/get-station-name"] = get_station_name
-	bot.handlers["schedule/select-station"] = select_stantion
+	bot.handlers["schedule/select-station"] = select_station
 	bot.handlers["schedule/search"] = search
-	bot.callback_handlers["show_shedule"] = 
+	bot.callback_handlers["schedule/show_shedule"] = show_shedule
 
 def start(bot, message):
 	GET_FIRST_STATION = bot.render_message("get-first-station")
 	bot.telegram.send_message(message.u_id, GET_FIRST_STATION)
 
-	bot.set_next_handler("schedule/get-station-name")
+	bot.set_next_handler(message.u_id, "schedule/get-station-name")
 
 def get_station_name(bot, message):
-	SELECT_STANTION = bot.render_message("station-not-found")
+	SELECT_station = bot.render_message("select-station")
 	STATION_NOT_FOUND = bot.render_message("station-not-found")
 
 	if not message.forward: 
-		stantions = bot.get_station(message.text)
+		stations = bot.get_station(message.text)
 
-		if not stantions:
+		if not stations:
 			bot.telegram.send_message(message.u_id, STATION_NOT_FOUND)	
 			return	
 
-		stantions_keyboard = [(stantion["name"].lower()+" ("+stantion["railway"].lower()+")", stantion["express"]) for stantion in stantions]
-		bot.user_set(message.u_id, "stantions_keyboard", stantions_keyboard)
+		stations_keyboard = [[(station["name"].lower()+" ("+station["railway"].lower()+")", station["express"])] for station in stations]
+		bot.user_set(message.u_id, "stations_keyboard", stations_keyboard)
 	else:
-		stantions_keyboard = bot.user_get(message.u_id, "stantions_keyboard")
+		stations_keyboard = bot.user_get(message.u_id, "stations_keyboard")
 	
-	keyboard = bot.get_keyboard(stantions_keyboard)
-	bot.telegram.send_message(message.u_id, SELECT_STANTION, reply_markup = keyboard)
+	keyboard = bot.get_keyboard(stations_keyboard)
+	bot.telegram.send_message(message.u_id, SELECT_station, reply_markup = keyboard)
 
 	bot.set_next_handler(message.u_id, "schedule/select-station")
 
 
-def select_stantion(bot, message):
-	GET_SECOND_STANTION = bot.render_message("get-second-stantion")
+def select_station(bot, message):
+	GET_SECOND_station = bot.render_message("get-second-station")
 
-	stantions_keyboard = bot.user_get(message.u_id, "stantions_keyboard")
-	stantion = bot.get_key(stantions_keyboard, message.text)
+	stations_keyboard = bot.user_get(message.u_id, "stations_keyboard")
+	station = bot.get_key(stations_keyboard, message.text)
 
-	if not stantion:
+	if not station:
 		bot.call_handler(message.u_id, "schedule/get-station-name", message)
 		return
 
-	first_stantion = bot.user_get(message.u_id, "stantion:1")
+	first_station = bot.user_get(message.u_id, "station:1")
 
-	if not first_stantion:
-		bot.user_set(message.u_id, "stantion:1", stantion)
-		bot.telegram.send_message(message.u_id, GET_SECOND_STANTION)
+	if not first_station:
+		bot.user_set(message.u_id, "station:1", station)
+		bot.telegram.send_message(message.u_id, GET_SECOND_station)
+		bot.set_next_handler(message.u_id, "schedule/get-station-name")
 	else:
-		bot.user_set(message.u_id, "stantion:2", stantion)
-		results = []
+		bot.user_set(message.u_id, "station:2", station)
+		bot.call_handler("schedule/search", message)
+
+
 
 def search(bot, message):
-	from_stantion = bot.user_get(message.u_id, "stantion:1")
-	to_stantion = bot.user_get(message.u_id, "stantion:2")
+	from_station = bot.user_get(message.u_id, "station:1")
+	to_station = bot.user_get(message.u_id, "station:2")
 
 	schedule = []
 	page = 1
 	next_page = True
 	while next_page:
 	    print(page)
-	    url = "https://api.rasp.yandex.net/v1.0/search/?apikey=%s&format=json&system=express&from=%s&to=%s&lang=ru&transport_types=suburban&page=%s"%(bot.API_KEY, from_stantion, to_stantion, page)
+	    url = "https://api.rasp.yandex.net/v1.0/search/?apikey=%s&format=json&system=express&from=%s&to=%s&lang=ru&transport_types=suburban&page=%s"%(bot.API_KEY, from_station, to_station, page)
 	    res = requests.get(url).json()
 	    
 	    next_page = res["pagination"]["has_next"]
