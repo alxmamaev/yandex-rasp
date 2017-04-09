@@ -75,7 +75,7 @@ class Bot:
         cur.execute("SELECT * FROM express WHERE name LIKE '%%%s%%';" % query)
         result = cur.fetchall()
 
-        labels = {"railway", "express", "name"}
+        labels = ("railway", "express", "name")
         result = [dict(zip(labels,i)) for i in result]
 
         return result
