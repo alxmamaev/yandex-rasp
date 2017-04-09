@@ -6,5 +6,6 @@
 	"get-second-station": "Введите станцию прибытия",
 	"select-station": "Выберите станцию из списка",
 	"station-not-found": "Упс.. Станция не найдена.",
-	"schedule-is-empty": "Маршруты не найдены."
+	"schedule-is-empty": "Маршруты не найдены.",
+	"ready": "Готово"
 }
