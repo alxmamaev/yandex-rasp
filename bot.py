@@ -165,6 +165,16 @@ class Bot:
         
         return markup
 
+    def get_inline_keyboard(self, keyboard):
+        if type(keyboard) is str: keyboard =  self.const["keyboards"][keyboard]
+        markup = telebot.types.InlineKeyboardMarkup(row_width=3)
+        for row in keyboard:
+            keyboard_row = []
+            for col in row: keyboard_row.append(telebot.types.InlineKeyboardButton(col[0]))
+            markup.row(*keyboard_row)
+
+        return markup
+
     def get_key(self, keyboard, message):
         if type(keyboard) is str: keyboard = self.const["keyboards"][keyboard]
         for row in keyboard:
