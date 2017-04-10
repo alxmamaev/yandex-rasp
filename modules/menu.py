@@ -16,5 +16,6 @@ def menu(bot, message):
 
 	if message.text == "/start": return bot.call_handler("menu/start", message)
 	if key and not message.forward: return bot.call_handler(key, message, forward_flag=False)
+	if message.text.startswith("/train"): return bot.call_handler("train/info", message, forward_flag=False)
 
 	bot.telegram.send_message(message.u_id, MENU_MESSAGE, reply_markup = MENU_KEYBOARD)

@@ -7,5 +7,7 @@
 	"select-station": "Выберите станцию из списка",
 	"station-not-found": "Упс.. Станция не найдена.",
 	"schedule-is-empty": "Маршруты не найдены.",
-	"ready": "Готово"
+	"train-not-found": "Маршрут не найден",
+	"ready": "Готово",
+	"train-info": "🚆 *{{train.title}} ({{train.number}})*\n_{{train.days}}_\n{% if train.excepted_days %}{{train.excepted_days}}\n{% endif %}\tВремя прибытия: {{train.arrival}}\n\tВремя отъезда: {{train.departure}}\n"
 }
