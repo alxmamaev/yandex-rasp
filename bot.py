@@ -4,7 +4,7 @@ import random
 import codecs
 import os
 import importlib
-import sqlite3
+import re
 
 import redis
 import telebot
@@ -27,6 +27,7 @@ class Bot:
         self.const.update(json.loads(codecs.open("config/init.json", "r", "utf-8").read()))
         self.const["messages"] = json.loads(codecs.open("config/messages.json", "r", "utf-8").read())
         self.const["keyboards"] = json.loads(codecs.open("config/keyboards.json", "r", "utf-8").read())
+        self.const["stations"] = json.loads(codecs.open("config/stations.json", "r", "utf-8").read())
         self.API_KEY = os.environ["API_KEY"]
 
         self.logger.info("Connect to Telegram")
@@ -35,9 +36,6 @@ class Bot:
 
         self.logger.info("Connect to Redis")
         self.redis = redis.from_url(os.environ.get("REDIS_URL","redis://localhost:6379"))
-
-        self.logger.info("Connect to sqlite")
-        self.sqlite = sqlite3.connect("base.db")
 
         self.logger.info("Collect modules")
         self._collect_modules()
@@ -71,13 +69,16 @@ class Bot:
         return value 
 
     def get_station(self, query):
-        cur = self.sqlite.cursor()
-        query = query.upper()
-        cur.execute("SELECT * FROM express WHERE name LIKE '%%%s%%';" % query)
-        result = cur.fetchall()
+        query = query.lower()
+        
+        regexp = "(((.*)\\-|(.* ))|^)%s((\\-(.*)|( .*))|$)" % query
 
+        result = []
         labels = ("railway", "express", "name")
-        result = [dict(zip(labels,i)) for i in result]
+        for station in self.const["stations"]:
+            if not re.match(regexp, station[2]) is None: 
+                station = dict(zip(labels,station))
+                result.append(station)
 
         return result
 

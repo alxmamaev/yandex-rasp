@@ -10,7 +10,7 @@ def info(bot, message):
 	schedule = bot.user_get(message.u_id, "schedule")
 
 	for train in schedule:
-		if train["number"] == train_number: break
+		if train["id"] == train_number: break
 	else:
 		bot.telegram.send_message(message.u_id, TRAIN_NOT_FOUND)	
 		return

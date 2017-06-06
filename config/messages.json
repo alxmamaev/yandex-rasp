@@ -1,7 +1,7 @@
 {
 	"start": "Привет ​{{username}} ✌️!\nЯ​ ​бот​ ​«Яндекс.Электрички» 🤖.\n​ ​Чем​ ​могу​ ​вам помочь? 😁",
 	"menu": "Чем​ ​могу​ ​вам помочь? 😁",
-	"schedule": "{% for i in schedule %}🚆 *{{i.title}} ({{i.number}})*\n\tВремя прибытия: {{i.arrival}}\n\tВремя отъезда: {{i.departure}}\n\tПодробнее:  /train{{i.number}}\n\n{% endfor %}",
+	"schedule": "{% for train in schedule %}🕒 *{{train.arrival}} - {{train.departure}}*\n\t\t\t🚆 *{{train.title}} ({{train.number}})*\n\t\t\t_{{train.days}}_{% if train.excepted_days %}_, кроме: {{train.excepted_days}}_{% endif %}\n\t\t\tВремя прибытия: {{train.arrival}}\n\t\t\tВремя отъезда: {{train.departure}}\n\t\t\t_Станиции следования:_ {% if train.stops %}все, кроме{{train.stops}}{% else %}все{% endif %}\n\n\t\t\t*Подробнее:*  /train{{train.id}}\n\n{% endfor %}",
 	"get-first-station": "Введите станцию отправления:",
 	"get-second-station": "Введите станцию прибытия",
 	"select-station": "Выберите станцию из списка",
@@ -9,5 +9,5 @@
 	"schedule-is-empty": "Маршруты не найдены.",
 	"train-not-found": "Маршрут не найден",
 	"ready": "Готово",
-	"train-info": "🚆 *{{train.title}} ({{train.number}})*\n_{{train.days}}_\n{% if train.excepted_days %}{{train.excepted_days}}\n{% endif %}\tВремя прибытия: {{train.arrival}}\n\tВремя отъезда: {{train.departure}}\n"
+	"train-info": "🚆 *{{train.title}} ({{train.number}})*\n_{{train.days}}_\n{% if train.excepted_days %}\t\t\t_Кроме: {{train.excepted_days}}_\n{% endif %}\tВремя прибытия: {{train.arrival}}\n\tВремя отъезда: {{train.departure}}\n"
 }

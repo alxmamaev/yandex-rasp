@@ -74,36 +74,41 @@ def search(bot, message):
 	page = 1
 	next_page = True
 	while next_page:
-	    print(page)
-	    url = "https://api.rasp.yandex.net/v1.0/search/?apikey=%s&format=json&system=express&from=%s&to=%s&lang=ru&transport_types=suburban&page=%s"%(bot.API_KEY, from_station, to_station, page)
-	    res = requests.get(url).json()
-	    
-	    next_page = res["pagination"]["has_next"]
-	    
-	    
-	    for i in res["threads"]:
-	        a = {
-	            "number": i["thread"]["number"],
-	            "uid": i["thread"]["uid"],
-	            "title": i["thread"]["title"],
-	            
-	            "arrival": i["arrival"],
-	            "departure": i["departure"],
-	            
-	            "days": i["days"],
-	            "excepted_days": i["except_days"],
-	            
-	            
-	            
-	        }
-	        schedule.append(a)
-	    page += 1
+		print(page)
+		url = "https://api.rasp.yandex.net/v1.0/search/?apikey=%s&format=json&system=express&from=%s&to=%s&lang=ru&transport_types=suburban&page=%s"%(bot.API_KEY, from_station, to_station, page)
+		res = requests.get(url).json()
+		
+		next_page = res["pagination"]["has_next"]
+		
+		
+		for i in res["threads"]:
+			a = {
+				"id": i["thread"]["number"].replace("/", ""),
+				"number": i["thread"]["number"],
+				"uid": i["thread"]["uid"],
+				"title": i["thread"]["title"],
+				
+				"arrival": i["departure"][:-3],
+				"departure": i["arrival"][:-3],
+				
+				"days": i["days"],
+				"excepted_days": i["except_days"],
+				"stops": i["stops"].replace("кроме:", "") if "кроме:" in i["stops"] else ""
+				
+				
+				
+			}
+			print("============")
+			print(i)
+			print("============")
+			schedule.append(a)
+		page += 1
 
 	bot.user_set(message.u_id, "schedule", schedule)
 	bot.user_set(message.u_id, "schedule:page", 0)
 	
 	if len(schedule) > 6: 
-		keyboard = bot.get_inline_keyboard([[["Далее", "schedule-show-shedule"]]])
+		keyboard = bot.get_inline_keyboard("more")
 	else:
 		keyboard = None
 
@@ -127,7 +132,7 @@ def show_shedule(bot, query):
 	bot.user_set(query.u_id, "schedule:page", page)
 
 	if page*5+5 <= len(schedule):
-		keyboard = bot.get_inline_keyboard([[["Далее", "schedule-show-shedule"]]])
+		keyboard = bot.get_inline_keyboard("more")
 	else:
 		keyboard = None
 
