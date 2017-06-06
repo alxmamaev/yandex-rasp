@@ -1,7 +1,7 @@
 {
 	"start": "Привет ​{{username}} ✌️!\nЯ​ ​бот​ ​«Яндекс.Электрички» 🤖.\n​ ​Чем​ ​могу​ ​вам помочь? 😁",
 	"menu": "Чем​ ​могу​ ​вам помочь? 😁",
-	"schedule": "{% for train in schedule %}🕒 *{{train.arrival}} - {{train.departure}}*\n\t\t\t🚆 *{{train.title}} ({{train.number}})*\n\t\t\t_{{train.days}}_{% if train.excepted_days %}_, кроме: {{train.excepted_days}}_{% endif %}\n\t\t\tВремя прибытия: {{train.arrival}}\n\t\t\tВремя отъезда: {{train.departure}}\n\t\t\t_Станиции следования:_ {% if train.stops %}все, кроме{{train.stops}}{% else %}все{% endif %}\n\n\t\t\t*Подробнее:*  /train{{train.id}}\n\n{% endfor %}",
+	"schedule": "{% for train in schedule %}🕒 *{{train.arrival}} - {{train.departure}}*\n\t\t\t🚆 *{{train.title}}*\n\t\t\t{% if  not \"ежедневно\" in train.days %}Только по:{% endif %}_{{train.days}}_{% if train.excepted_days %}_, кроме: {{train.excepted_days}}_{% endif %}\n\t\t\tСтаниции следования{% if train.stops %} все, кроме:_ {{train.stops}}_{% else %}:  _все_{% endif %}\n\n\t\t\t*Подробнее:*  /train{{train.id}}\n\n{% endfor %}",
 	"get-first-station": "Введите станцию отправления:",
 	"get-second-station": "Введите станцию прибытия",
 	"select-station": "Выберите станцию из списка",

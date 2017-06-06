@@ -18,11 +18,12 @@ def start(bot, message):
 	bot.set_next_handler(message.u_id, "schedule/get-station-name")
 
 def get_station_name(bot, message):
-	SELECT_station = bot.render_message("select-station")
+	SELECT_STATION = bot.render_message("select-station")
 	STATION_NOT_FOUND = bot.render_message("station-not-found")
 
 	if not message.forward: 
 		stations = bot.get_station(message.text)
+		bot.user_set(message.u_id, "stations", stations)
 
 		if not stations:
 			bot.telegram.send_message(message.u_id, STATION_NOT_FOUND)	
@@ -34,17 +35,22 @@ def get_station_name(bot, message):
 		stations_keyboard = bot.user_get(message.u_id, "stations_keyboard")
 	
 	keyboard = bot.get_keyboard(stations_keyboard)
-	bot.telegram.send_message(message.u_id, SELECT_station, reply_markup = keyboard)
 
-	bot.set_next_handler(message.u_id, "schedule/select-station")
-
+	if len(stations) == 1:
+		bot.call_handler("schedule/select-station", message)
+	else: 
+		bot.telegram.send_message(message.u_id, SELECT_STATION, reply_markup = keyboard)
+		bot.set_next_handler(message.u_id, "schedule/select-station")
 
 def select_station(bot, message):
 	GET_SECOND_station = bot.render_message("get-second-station")
 	BACK_TO_MENU_KEYBOARD = bot.get_keyboard("back-to-menu")
 
 	stations_keyboard = bot.user_get(message.u_id, "stations_keyboard")
-	station = bot.get_key(stations_keyboard, message.text)
+	stations = bot.user_get(message.u_id, "stations")
+
+	if len(stations) == 1: station = stations[0]["express"]
+	else: station = bot.get_key(stations_keyboard, message.text)
 
 	if not station:
 		bot.call_handler(message.u_id, "schedule/get-station-name", message)
@@ -98,9 +104,6 @@ def search(bot, message):
 				
 				
 			}
-			print("============")
-			print(i)
-			print("============")
 			schedule.append(a)
 		page += 1
 
