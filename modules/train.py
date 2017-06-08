@@ -1,3 +1,5 @@
+import requests
+
 def init(bot):
 	bot.handlers["train/info"] = info
 
@@ -15,5 +17,21 @@ def info(bot, message):
 		bot.telegram.send_message(message.u_id, TRAIN_NOT_FOUND)	
 		return
 
+	url = "https://api.rasp.yandex.net/v1.0/thread/?apikey=%s&format=json&system=express&uid=%s"%(bot.API_KEY, train["uid"])
+	res = requests.get(url).json()
+
+	stops = []
+	for stop in res["stops"]:
+		stop = {
+			"title": stop["station"]["title"],
+			"arrival": "Пусто" if stop["arrival"] is None else stop["arrival"].split()[-1][:-3],
+			"departure": "Пусто" if stop["departure"] is None else stop["departure"].split()[-1][:-3],
+			"type": stop["station"]["type"]
+		}
+		stops.append(stop)
+
 	INFO = bot.render_message("train-info", train = train)
+	STOPS = bot.render_message("stops", stops = stops)
+	
 	bot.telegram.send_message(message.u_id, INFO, parse_mode = "Markdown")
+	bot.telegram.send_message(message.u_id, STOPS, parse_mode = "Markdown")

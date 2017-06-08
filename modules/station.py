@@ -1,21 +1,21 @@
 import requests
 
 def init(bot):
-	bot.handlers["schedule/start"] = start
-	bot.handlers["schedule/get-station-name"] = get_station_name
-	bot.handlers["schedule/select-station"] = select_station
-	bot.handlers["schedule/search"] = search
-	bot.callback_handlers["schedule-show-shedule"] = show_shedule
+	bot.handlers["station/start"] = start
+	bot.handlers["station/get-station-name"] = get_station_name
+	bot.handlers["station/select-station"] = select_station
+	bot.handlers["station/search"] = search
+	bot.callback_handlers["station-show-shedule"] = show_shedule
 
 def start(bot, message):
-	GET_FIRST_STATION = bot.render_message("get-first-station")
+	GET_STATION = bot.render_message("get-station")
 	BACK_TO_MENU_KEYBOARD = bot.get_keyboard("back-to-menu")
-	bot.telegram.send_message(message.u_id, GET_FIRST_STATION, reply_markup = BACK_TO_MENU_KEYBOARD)
+	bot.telegram.send_message(message.u_id, GET_STATION, reply_markup = BACK_TO_MENU_KEYBOARD)
 
-	bot.user_delete(message.u_id, "schedule:station:1")
-	bot.user_delete(message.u_id, "schedule:station:2")
+	bot.user_delete(message.u_id, "station:1")
+	bot.user_delete(message.u_id, "station:2")
 
-	bot.set_next_handler(message.u_id, "schedule/get-station-name")
+	bot.set_next_handler(message.u_id, "station/get-station-name")
 
 def get_station_name(bot, message):
 	SELECT_STATION = bot.render_message("select-station")
@@ -37,10 +37,10 @@ def get_station_name(bot, message):
 	keyboard = bot.get_keyboard(stations_keyboard)
 
 	if len(stations) == 1:
-		bot.call_handler("schedule/select-station", message)
+		bot.call_handler("station/select-station", message)
 	else: 
 		bot.telegram.send_message(message.u_id, SELECT_STATION, reply_markup = keyboard)
-		bot.set_next_handler(message.u_id, "schedule/select-station")
+		bot.set_next_handler(message.u_id, "station/select-station")
 
 def select_station(bot, message):
 	GET_SECOND_station = bot.render_message("get-second-station")
@@ -53,18 +53,12 @@ def select_station(bot, message):
 	else: station = bot.get_key(stations_keyboard, message.text)
 
 	if not station:
-		bot.call_handler(message.u_id, "schedule/get-station-name", message)
+		bot.call_handler(message.u_id, "station/get-station-name", message)
 		return
 
-	first_station = bot.user_get(message.u_id, "schedule:station:1")
-
-	if not first_station:
-		bot.user_set(message.u_id, "schedule:station:1", station)
-		bot.telegram.send_message(message.u_id, GET_SECOND_station, reply_markup = BACK_TO_MENU_KEYBOARD)
-		bot.set_next_handler(message.u_id, "schedule/get-station-name")
-	else:
-		bot.user_set(message.u_id, "schedule:station:2", station)
-		bot.call_handler("schedule/search", message)
+	
+	bot.user_set(message.u_id, "station:station", station)
+	bot.call_handler("station/search", message)
 
 
 
@@ -73,29 +67,28 @@ def search(bot, message):
 	READY = bot.render_message("ready")
 	BACK_TO_MENU_KEYBOARD = bot.get_keyboard("back-to-menu")
 
-	from_station = bot.user_get(message.u_id, "schedule:station:1")
-	to_station = bot.user_get(message.u_id, "schedule:station:2")
+	station = bot.user_get(message.u_id, "station:station")
 
 	schedule = []
 	page = 1
 	next_page = True
 	while next_page:
 		print(page)
-		url = "https://api.rasp.yandex.net/v1.0/search/?apikey=%s&format=json&system=express&from=%s&to=%s&lang=ru&transport_types=suburban&page=%s"%(bot.API_KEY, from_station, to_station, page)
+		url = "https://api.rasp.yandex.net/v1.0/schedule/?apikey=%s&format=json&system=express&station=%s&lang=ru&transport_types=suburban&page=%s"%(bot.API_KEY, station, page)
 		res = requests.get(url).json()
 		
 		next_page = res["pagination"]["has_next"]
 		
 		
-		for i in res["threads"]:
+		for i in res["schedule"]:
 			a = {
 				"id": i["thread"]["number"].replace("/", ""),
 				"number": i["thread"]["number"],
 				"uid": i["thread"]["uid"],
 				"title": i["thread"]["title"],
 				
-				"arrival": i["departure"][:-3],
-				"departure": i["arrival"][:-3],
+				"arrival": i["departure"][:-3][:-3],
+				"departure": i["arrival"][:-3][:-3],
 				
 				"days": i["days"],
 				"excepted_days": i["except_days"],
@@ -107,8 +100,8 @@ def search(bot, message):
 			schedule.append(a)
 		page += 1
 
-	bot.user_set(message.u_id, "schedule", schedule)
-	bot.user_set(message.u_id, "schedule:page", 0)
+	bot.user_set(message.u_id, "station:schedule", schedule)
+	bot.user_set(message.u_id, "station:schedule:page", 0)
 	
 	if len(schedule) > 6: 
 		keyboard = bot.get_inline_keyboard("more")
