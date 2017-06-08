@@ -8,7 +8,6 @@ def info(bot, message):
 
 	train_number = message.text.replace("/train", "")
 
-	page = bot.user_get(message.u_id, "schedule:page")
 	schedule = bot.user_get(message.u_id, "schedule")
 
 	for train in schedule:
@@ -24,14 +23,14 @@ def info(bot, message):
 	for stop in res["stops"]:
 		stop = {
 			"title": stop["station"]["title"],
-			"arrival": "Пусто" if stop["arrival"] is None else stop["arrival"].split()[-1][:-3],
-			"departure": "Пусто" if stop["departure"] is None else stop["departure"].split()[-1][:-3],
+			"arrival": None if stop["arrival"] is None else stop["arrival"].split()[-1][:-3],
+			"departure": None if stop["departure"] is None else stop["departure"].split()[-1][:-3],
 			"type": stop["station"]["type"]
 		}
 		stops.append(stop)
 
 	INFO = bot.render_message("train-info", train = train)
-	STOPS = bot.render_message("stops", stops = stops)
+	STOPS = bot.render_message("stops", stops = stops, not_stops = train["stops"])
 	
 	bot.telegram.send_message(message.u_id, INFO, parse_mode = "Markdown")
 	bot.telegram.send_message(message.u_id, STOPS, parse_mode = "Markdown")

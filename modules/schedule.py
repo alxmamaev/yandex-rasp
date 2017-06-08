@@ -1,4 +1,5 @@
 import requests
+import random
 
 def init(bot):
 	bot.handlers["schedule/start"] = start
@@ -89,7 +90,7 @@ def search(bot, message):
 		
 		for i in res["threads"]:
 			a = {
-				"id": i["thread"]["number"].replace("/", ""),
+				"id": str(random.randint(100000,999999)),
 				"number": i["thread"]["number"],
 				"uid": i["thread"]["uid"],
 				"title": i["thread"]["title"],

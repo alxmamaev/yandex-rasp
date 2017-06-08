@@ -10,6 +10,6 @@
 	"train-not-found": "Маршрут не найден. ☹️",
 	"ready": ["Готово ✅", "Сделано 👌", "Отлично 👍"],
 	"get-station": "Введите название станции",
-	"train-info": "🚆 *{{train.title}} ({{train.number}})*\n_{{train.days}}_\n{% if train.excepted_days %}\t\t\t_Кроме: {{train.excepted_days}}_\n{% endif %}\tВремя прибытия: {{train.arrival}}\n\tВремя отъезда: {{train.departure}}\n",
-	"stops": "*Маршрут движения поезда:*\n🔵\n▫️\n▫️\n{% for stop in stops %}🔹       *{{stop.title}}*\n▫️\t        _{{stop.arrival}}-{{stop.departure}}_\n▫️\n{% endfor %}🔴"
+	"train-info": "🚆 *{{train.title}}*\n\t\t\t*Номер рейса: {{train.number}}*\n\t\t\t📅 {% if  not \"ежедневно\" in train.days %}Только по: {% endif %}_{{train.days}}_{% if train.excepted_days %}_, кроме: {{train.excepted_days}}_{% endif %}\n\t\t\t🚉 Станиции следования{% if train.stops %} все, кроме:_ {{train.stops}}_{% else %}:  _все_{% endif %}",
+	"stops": "*Маршрут движения поезда:*\n🔵\n▫️\n▫️\n{% for stop in stops %}{% if not stop.title in not_stops %}🔹{% else %}✖️{% endif %}       *{{stop.title}}*\n▫️\t        _{% if not stop.arrival %}{{stop.departure}}{% elif not stop.departure %}{{stop.arrival}}{% else %}{{stop.arrival}}-{{stop.departure}}{% endif %}_\n▫️\n{% endfor %}🔴"
 }
