@@ -6,7 +6,7 @@ def start(bot, message):
 	START_MESSAGE = bot.render_message("start", username = message.from_user.username)
 	MENU_KEYBOARD = bot.get_keyboard("menu")
 
-	bot.telegram.send_message(message.u_id, START_MESSAGE, reply_markup = MENU_KEYBOARD)
+	bot.telegram.send_message(message.u_id, START_MESSAGE, reply_markup = MENU_KEYBOARD, parse_mode="Markdown")
 
 def menu(bot, message):
 	MENU_KEYBOARD = bot.get_keyboard("menu")

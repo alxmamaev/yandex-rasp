@@ -30,7 +30,8 @@ def info(bot, message):
 		stops.append(stop)
 
 	INFO = bot.render_message("train-info", train = train)
-	STOPS = bot.render_message("stops", stops = stops, not_stops = train["stops"])
+	STOPS = bot.render_message("stops", stops = stops[::-1], not_stops = train["stops"])
 	
-	bot.telegram.send_message(message.u_id, INFO, parse_mode = "Markdown")
 	bot.telegram.send_message(message.u_id, STOPS, parse_mode = "Markdown")
+	bot.telegram.send_message(message.u_id, INFO, parse_mode = "Markdown")
+	
