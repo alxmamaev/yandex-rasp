@@ -16,6 +16,13 @@ def menu(bot, message):
 
 	if message.text == "/start": return bot.call_handler("menu/start", message)
 	if key and not message.forward: return bot.call_handler(key, message, forward_flag=False)
-	if message.text and message.text.startswith("/train"): return bot.call_handler("train/info", message, forward_flag=False)
+	if message.text and message.text.startswith("/train"): return bot.call_handler("train/info", message, forward_flag=True)
 
-	bot.telegram.send_message(message.u_id, MENU_MESSAGE, reply_markup = MENU_KEYBOARD)
+	bot.user_delete(message.u_id, "schedule:station:1")
+	bot.user_delete(message.u_id, "schedule:station:2")
+	bot.user_delete(message.u_id, "stations_keyboard")
+
+	if not message.forward: bot.call_handler("schedule/get-station-from-menu", message, forward_flag = False)
+	else: 
+		bot.set_next_handler(message.u_id, "main-menu")
+		bot.telegram.send_message(message.u_id, MENU_MESSAGE, reply_markup = MENU_KEYBOARD)

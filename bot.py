@@ -68,20 +68,6 @@ class Bot:
 
         return value 
 
-    def get_station(self, query):
-        query = query.lower()
-        
-        regexp = "(((.*)\\-|(.* ))|^)%s((\\-(.*)|( .*))|$)" % query
-
-        result = []
-        labels = ("railway", "express", "name")
-        for station in self.const["stations"]:
-            if not re.match(regexp, station[2]) is None: 
-                station = dict(zip(labels,station))
-                result.append(station)
-
-        return result
-
     def user_delete(self, user_id, field):
         key = "%s:%s" % (user_id, field)
         value = self.redis.delete(key)
@@ -113,8 +99,9 @@ class Bot:
     def _process_message(self, message):
         message.u_id = message.chat.id
         message.forward = False
-        if message.text == self.const["menu-button"]: 
-            self.set_next_handler(message.u_id, self.const["default-handler"])
+        if message.text == self.const["menu-button"]:
+            self.call_handler(self.const["default-handler"], message, forward_flag = True)
+            return
         
         current_handler = self.user_get(message.u_id, "next_handler", default = self.const["default-handler"])
         self.set_next_handler(message.u_id, self.const["default-handler"])
@@ -125,7 +112,7 @@ class Bot:
             self.logger.error(ex)
             if self.debug: raise ex
             self.set_next_handler(message.u_id, self.const["default-handler"])
-            self.call_handler(self.const["default-handler"], message, forward_flag = False)
+            self.call_handler(self.const["default-handler"], message, forward_flag = True)
 
     def _process_callback(self, query):
         query.u_id = query.message.chat.id
