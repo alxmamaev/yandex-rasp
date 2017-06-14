@@ -177,7 +177,7 @@ def get_station_name(bot, message):
 	
 	keyboard = bot.get_keyboard(stations_keyboard)
 
-	if len(stations) == 1:
+	if len(stations_keyboard) == 1:
 		bot.call_handler("schedule/select-station", message)
 	else: 
 		bot.telegram.send_message(message.u_id, SELECT_STATION, reply_markup = keyboard)
@@ -186,7 +186,9 @@ def get_station_name(bot, message):
 def select_station(bot, message):
 	GET_SECOND_station = bot.render_message("get-second-station")
 	BACK_TO_MENU_KEYBOARD = bot.get_keyboard("back-to-menu")
-
+	MENU_KEYBOARD = bot.get_keyboard("menu")
+	READY = bot.render_message("ready")
+	
 	stations_keyboard = bot.user_get(message.u_id, "stations_keyboard")
 	stations = bot.user_get(message.u_id, "stations")
 
@@ -205,13 +207,15 @@ def select_station(bot, message):
 		bot.set_next_handler(message.u_id, "schedule/get-station-name")
 	else:
 		bot.user_set(message.u_id, "schedule:station:2", station)
+
+		bot.telegram.send_message(message.u_id, READY, reply_markup = MENU_KEYBOARD)
 		bot.call_handler("schedule/search", message)
+		bot.set_next_handler(message.u_id, "main-menu")
 
 
 
 def search(bot, message):
 	SCHEDULE_IS_EMPTY = bot.render_message("schedule-is-empty")
-	READY = bot.render_message("ready")
 	BACK_TO_MENU_KEYBOARD = bot.get_keyboard("back-to-menu")
 
 	from_station = bot.user_get(message.u_id, "schedule:station:1")
@@ -257,7 +261,6 @@ def search(bot, message):
 		keyboard = None
 
 	if schedule:
-		bot.telegram.send_message(message.u_id, READY, reply_markup = BACK_TO_MENU_KEYBOARD)
 		SCHEDULE = bot.render_message("schedule", schedule = schedule[0:5])
 		bot.telegram.send_message(message.u_id, SCHEDULE, parse_mode = "Markdown", reply_markup = keyboard)
 	else:
