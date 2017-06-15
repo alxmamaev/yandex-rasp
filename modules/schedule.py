@@ -1,6 +1,8 @@
 import requests
 import random
 import Stemmer
+import dateparser
+import datetime
 
 stemmer = Stemmer.Stemmer('russian')
 
@@ -10,6 +12,7 @@ def init(bot):
 	bot.handlers["schedule/get-station-from-menu"] = stations_from_menu
 	bot.handlers["schedule/select-station"] = select_station
 	bot.handlers["schedule/search"] = search
+	bot.handlers["schedule/get-time"] = get_time
 	bot.callback_handlers["schedule-show-shedule"] = show_shedule
 
 def autocorrector(text):
@@ -187,7 +190,7 @@ def select_station(bot, message):
 	GET_SECOND_station = bot.render_message("get-second-station")
 	BACK_TO_MENU_KEYBOARD = bot.get_keyboard("back-to-menu")
 	MENU_KEYBOARD = bot.get_keyboard("menu")
-	READY = bot.render_message("ready")
+	GET_DATE = bot.render_message("get-date")
 	
 	stations_keyboard = bot.user_get(message.u_id, "stations_keyboard")
 	stations = bot.user_get(message.u_id, "stations")
@@ -207,11 +210,28 @@ def select_station(bot, message):
 		bot.set_next_handler(message.u_id, "schedule/get-station-name")
 	else:
 		bot.user_set(message.u_id, "schedule:station:2", station)
+		bot.telegram.send_message(message.u_id, GET_DATE, reply_markup = BACK_TO_MENU_KEYBOARD)
+		bot.set_next_handler(message.u_id, "schedule/get-time")
+		
+		
 
+def get_time(bot, message):
+	UNCORRECT_DATE = bot.render_message("uncorrect-date")
+	READY = bot.render_message("ready")
+	MENU_KEYBOARD = bot.get_keyboard("menu")
+
+	date = dateparser.parse(message.text)
+	if date: 
+		date = date.strftime("%Y-%m-%d")
+		bot.user_set(message.u_id, "schedule:date", date)
+		
 		bot.telegram.send_message(message.u_id, READY, reply_markup = MENU_KEYBOARD)
+		
 		bot.call_handler("schedule/search", message)
 		bot.set_next_handler(message.u_id, "main-menu")
-
+	else:
+		bot.telegram.send_message(message.u_id, UNCORRECT_DATE, parse_mode = "Markdown")
+		bot.set_next_handler(message.u_id, "schedule/get-time")
 
 
 def search(bot, message):
@@ -225,8 +245,9 @@ def search(bot, message):
 	page = 1
 	next_page = True
 	while next_page:
-		print(page)
-		url = "https://api.rasp.yandex.net/v1.0/search/?apikey=%s&format=json&system=express&from=%s&to=%s&lang=ru&transport_types=suburban&page=%s"%(bot.API_KEY, from_station, to_station, page)
+		date = bot.user_get(message.u_id, "schedule:date", default = datetime.date.today().strftime("%Y-%m-%d"))
+
+		url = "https://api.rasp.yandex.net/v1.0/search/?apikey=%s&format=json&system=express&from=%s&to=%s&lang=ru&transport_types=suburban&page=%s&date=%s"%(bot.API_KEY, from_station, to_station, page, date)
 		res = requests.get(url).json()
 		
 		next_page = res["pagination"]["has_next"]
@@ -242,15 +263,14 @@ def search(bot, message):
 				"arrival": i["departure"][:-3],
 				"departure": i["arrival"][:-3],
 				
-				"days": i["days"],
-				"excepted_days": i["except_days"],
-				"stops": i["stops"].replace("кроме:", "") if "кроме:" in i["stops"] else ""
-				
-				
-				
+				"days": i.get("days", "ежедневно"),
+				"excepted_days": i.get("except_days", ""),
+				"stops": i["stops"].replace("кроме:", "") if "кроме:" in i["stops"] else "",
 			}
 			schedule.append(a)
 		page += 1
+	if res["search"]["date"] or datetime.date.today().strftime("%Y-%m-%d") == res["search"]["date"]: schedule[0]["date"] = ".".join(res["search"]["date"].split(".")[::-1])
+	else: schedule[0]["date"] = None
 
 	bot.user_set(message.u_id, "schedule", schedule)
 	bot.user_set(message.u_id, "schedule:page", 0)
@@ -261,7 +281,8 @@ def search(bot, message):
 		keyboard = None
 
 	if schedule:
-		SCHEDULE = bot.render_message("schedule", schedule = schedule[0:5])
+		print("render schedule", schedule, schedule[0]["date"])
+		SCHEDULE = bot.render_message("schedule", schedule = schedule[0:5], date = schedule[0]["date"])
 		bot.telegram.send_message(message.u_id, SCHEDULE, parse_mode = "Markdown", reply_markup = keyboard)
 	else:
 		bot.telegram.send_message(message.u_id, SCHEDULE_IS_EMPTY, reply_markup = BACK_TO_MENU_KEYBOARD)
@@ -272,7 +293,7 @@ def show_shedule(bot, query):
 	page = bot.user_get(query.u_id, "schedule:page")
 	schedule = bot.user_get(query.u_id, "schedule")
 
-	SCHEDULE = bot.render_message("schedule", schedule = schedule[0:5])
+	SCHEDULE = bot.render_message("schedule", schedule = schedule[0:5], date = schedule[0]["date"])
 	bot.telegram.edit_message_text(chat_id = query.u_id, message_id = query.message.message_id, text = SCHEDULE, parse_mode = "Markdown")
 
 	page+=1
@@ -283,5 +304,5 @@ def show_shedule(bot, query):
 	else:
 		keyboard = None
 
-	SCHEDULE = bot.render_message("schedule", schedule = schedule[page*5:page*5+5])
+	SCHEDULE = bot.render_message("schedule", schedule = schedule[page*5:page*5+5], date = schedule[0]["date"])
 	bot.telegram.send_message(query.u_id, SCHEDULE, parse_mode = "Markdown", reply_markup = keyboard)
