@@ -1,0 +1,7 @@
+jinja2
+flask
+gunicorn
+redis
+dateparser
+pystemmer
+pytelegrambotapi
