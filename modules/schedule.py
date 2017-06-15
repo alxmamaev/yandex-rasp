@@ -120,9 +120,13 @@ def stations_from_menu(bot, message):
 
 	bot.user_set(message.u_id, "schedule:station:1", station_1)
 	bot.user_set(message.u_id, "schedule:station:2", station_2)
+
+	cur_date = datetime.date.today().strftime("%Y-%m-%d")
+	bot.user_set(message.u_id, "schedule:date", cur_date)
+
 	bot.call_handler("schedule/search", message)
 
-
+	
 
 def get_station_name(bot, message):
 	SELECT_STATION = bot.render_message("select-station")
@@ -191,6 +195,7 @@ def select_station(bot, message):
 	BACK_TO_MENU_KEYBOARD = bot.get_keyboard("back-to-menu")
 	MENU_KEYBOARD = bot.get_keyboard("menu")
 	GET_DATE = bot.render_message("get-date")
+	SELECT_STATION = bot.render_message("select-station")
 	
 	stations_keyboard = bot.user_get(message.u_id, "stations_keyboard")
 	stations = bot.user_get(message.u_id, "stations")
@@ -199,7 +204,9 @@ def select_station(bot, message):
 	else: station = bot.get_key(stations_keyboard, message.text)
 
 	if not station:
-		bot.call_handler("schedule/get-station-name", message)
+		keyboard = bot.get_keyboard(stations_keyboard)
+		bot.telegram.send_message(message.u_id, SELECT_STATION, reply_markup = keyboard)
+		bot.set_next_handler(message.u_id, "schedule/select-station")
 		return
 
 	first_station = bot.user_get(message.u_id, "schedule:station:1")
@@ -245,7 +252,8 @@ def search(bot, message):
 	page = 1
 	next_page = True
 	while next_page:
-		date = bot.user_get(message.u_id, "schedule:date", default = datetime.date.today().strftime("%Y-%m-%d"))
+		cur_date = datetime.date.today().strftime("%Y-%m-%d")
+		date = bot.user_get(message.u_id, "schedule:date", default = cur_date)
 
 		url = "https://api.rasp.yandex.net/v1.0/search/?apikey=%s&format=json&system=express&from=%s&to=%s&lang=ru&transport_types=suburban&page=%s&date=%s"%(bot.API_KEY, from_station, to_station, page, date)
 		res = requests.get(url).json()
@@ -260,8 +268,8 @@ def search(bot, message):
 				"uid": i["thread"]["uid"],
 				"title": i["thread"]["title"],
 				
-				"arrival": i["departure"][:-3],
-				"departure": i["arrival"][:-3],
+				"arrival": i["departure"].split()[-1][:-3],
+				"departure": i["arrival"].split()[-1][:-3],
 				
 				"days": i.get("days", "ежедневно"),
 				"excepted_days": i.get("except_days", ""),
@@ -269,7 +277,8 @@ def search(bot, message):
 			}
 			schedule.append(a)
 		page += 1
-	if res["search"]["date"] or datetime.date.today().strftime("%Y-%m-%d") == res["search"]["date"]: schedule[0]["date"] = ".".join(res["search"]["date"].split(".")[::-1])
+
+	if date != cur_date: schedule[0]["date"] = ".".join(date.split("-")[::-1])
 	else: schedule[0]["date"] = None
 
 	bot.user_set(message.u_id, "schedule", schedule)
