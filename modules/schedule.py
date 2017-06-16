@@ -67,7 +67,7 @@ def start(bot, message):
 
 def stations_from_menu(bot, message):
 	SELECT_STATION = bot.render_message("select-station")
-	STATION_NOT_FOUND = bot.render_message("station-not-found")
+	UNCORRECT_QUERY = bot.render_message("uncorrect-query")
 
 
 	station_name = autocorrector(message.text).lower()
@@ -105,7 +105,7 @@ def stations_from_menu(bot, message):
 	if len(stations) > 1:
 		stations = stations[0:2]
 	else:
-		bot.telegram.send_message(message.u_id, STATION_NOT_FOUND)	
+		bot.telegram.send_message(message.u_id, UNCORRECT_QUERY, parse_mode = "Markdown")	
 		return	
 
 
@@ -129,6 +129,8 @@ def stations_from_menu(bot, message):
 	
 
 def get_station_name(bot, message):
+	GET_FIRST_STATION = bot.render_message("get-first-station")
+	GET_SECOND_STATION = bot.render_message("get-second-station")
 	SELECT_STATION = bot.render_message("select-station")
 	STATION_NOT_FOUND = bot.render_message("station-not-found")
 
@@ -173,7 +175,14 @@ def get_station_name(bot, message):
 		bot.user_set(message.u_id, "stations", stations)
 
 		if not stations:
-			bot.telegram.send_message(message.u_id, STATION_NOT_FOUND)	
+			station_1 = bot.user_get(message.u_id, "schedule:station:1")
+			station_2 = bot.user_get(message.u_id, "schedule:station:2")
+
+			bot.telegram.send_message(message.u_id, STATION_NOT_FOUND)
+			if not station_1: bot.telegram.send_message(message.u_id, GET_FIRST_STATION)
+			else: bot.telegram.send_message(message.u_id, GET_SECOND_STATION)
+
+			bot.set_next_handler(message.u_id, "schedule/get-station-name")
 			return	
 
 
